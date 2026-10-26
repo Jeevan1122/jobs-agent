@@ -204,14 +204,17 @@ def create_user(email, name, password_hash):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        cur.execute(
-            _q("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)"),
-            (email.lower().strip(), name.strip(), password_hash),
-        )
         if USE_PG:
-            cur.execute("SELECT lastval()")
-            uid = cur.fetchone()[0] if USE_PG else cur.lastrowid
+            cur.execute(
+                "INSERT INTO users (email, name, password_hash) VALUES (%s, %s, %s) RETURNING id",
+                (email.lower().strip(), name.strip(), password_hash),
+            )
+            uid = cur.fetchone()["id"]
         else:
+            cur.execute(
+                "INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)",
+                (email.lower().strip(), name.strip(), password_hash),
+            )
             uid = cur.lastrowid
         conn.commit()
         return uid
@@ -414,7 +417,7 @@ def save_email(email_dict, user_id=None):
         conn.commit()
         if USE_PG:
             cur.execute("SELECT lastval()")
-            last_id = cur.fetchone()[0]
+            last_id = cur.fetchone()["lastval"]
         else:
             last_id = cur.lastrowid
     except Exception as e:
