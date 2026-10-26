@@ -34,6 +34,11 @@ limiter = Limiter(
     default_limits=[],
     storage_uri=os.getenv("REDIS_URL", "memory://"),
 )
+
+# Create tables on startup (works for both gunicorn and direct python)
+with app.app_context():
+    db.init_db()
+    db.migrate_db()
 log = logging.getLogger(__name__)
 
 # ── OAuth ──────────────────────────────────────────────────────────────────────
