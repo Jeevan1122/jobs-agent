@@ -113,6 +113,45 @@ _agent_running: dict = {}   # user_id → bool
 _submission_status = {}
 
 
+def _notify_new_jobs(candidate, count):
+    """Email the user when the agent finds new jobs for them."""
+    gmail_pass = os.getenv("GMAIL_APP_PASSWORD")
+    gmail_user = os.getenv("GMAIL_SMTP_USER")
+    user_email = candidate.get("email")
+    app_url    = os.getenv("APP_URL", "https://jobs-agent-o7b8.onrender.com")
+
+    if not (gmail_pass and gmail_user and user_email):
+        return
+    try:
+        subject = f"🎯 JobAgent found {count} new job{'s' if count != 1 else ''} for you"
+        body = f"""Hi {candidate.get('name', 'there')},
+
+Your job agent just finished scanning and found {count} new job{'s' if count != 1 else ''} that match your profile.
+
+👉 Review them now: {app_url}
+
+Each job has been screened for:
+  • ATS keyword match against your skills
+  • Visa / sponsorship requirements
+  • Job freshness (posted in last 24h)
+
+Approve the ones you like and the agent will tailor your resume and submit.
+
+— JobAgent
+"""
+        msg = MIMEMultipart()
+        msg["From"]    = gmail_user
+        msg["To"]      = user_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(gmail_user, gmail_pass)
+            server.send_message(msg)
+        log.info(f"New-jobs notification sent to {user_email}")
+    except Exception as e:
+        log.warning(f"Could not send notification email: {e}")
+
+
 def _run_pipeline(user_id):
     try:
         db.init_db()
@@ -162,8 +201,9 @@ def _run_pipeline(user_id):
 
         # ── Screen + save ─────────────────────────────────────────────────────
         saved_count = 0
+        user_visa  = profile.get("visa_status", "")
         for job in active_jobs:
-            screening = screen_job(job, candidate_skills=skills_text)
+            screening = screen_job(job, candidate_skills=skills_text, visa_status=user_visa)
             job["ats_score"]         = screening["ats_score"]
             job["visa_flag"]         = screening["visa_flag"]
             job["visa_note"]         = screening["visa_note"]
@@ -182,6 +222,8 @@ def _run_pipeline(user_id):
             db.save_job(job, user_id=user_id)
 
         log.info(f"Pipeline done — {saved_count} new jobs added to pending queue.")
+        if saved_count > 0:
+            _notify_new_jobs(candidate, saved_count)
 
     except Exception as e:
         log.error(f"Pipeline error: {e}", exc_info=True)

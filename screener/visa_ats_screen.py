@@ -20,13 +20,29 @@ def _get_client():
     return _client
 
 
-def check_visa_disqualifiers(jd_text):
+def check_visa_disqualifiers(jd_text, visa_status=None):
+    """
+    Check job for visa disqualifiers.
+    Only applies sponsorship/OPT filters for non-citizens (F-1, H-1B, TN, etc.).
+    US Citizens and Green Card holders skip sponsorship checks.
+    """
     text_lower = jd_text.lower()
+    no_sponsorship_needed = visa_status and any(
+        v in (visa_status or "").lower()
+        for v in ["citizen", "green card", "gc", "permanent resident"]
+    )
+
     for phrase in config.VISA_HARD_DISQUALIFIERS:
+        # Skip sponsorship-related checks for citizens/GC holders
+        if no_sponsorship_needed and any(
+            word in phrase.lower() for word in ["sponsor", "opt", "f-1", "1099", "c2c", "corp"]
+        ):
+            continue
         if phrase.lower() in text_lower:
             return {"status": "hard_stop", "reason": f"Hard disqualifier: '{phrase}'"}
+
     gray_hits = [p for p in config.VISA_GRAY_AREA if p.lower() in text_lower]
-    if gray_hits:
+    if gray_hits and not no_sponsorship_needed:
         return {"status": "gray_area", "reason": f"Gray area: {gray_hits}"}
     return {"status": "ok", "reason": "No visa issues."}
 
@@ -153,11 +169,11 @@ def score_ats(jd_text, job_title, candidate_skills=None):
     return _keyword_score(jd_text, job_title, candidate_skills)
 
 
-def screen_job(job_dict, candidate_skills=None):
+def screen_job(job_dict, candidate_skills=None, visa_status=None):
     jd_text  = job_dict.get("description", "")
     job_title = job_dict.get("title", "")
 
-    visa_result = check_visa_disqualifiers(jd_text)
+    visa_result = check_visa_disqualifiers(jd_text, visa_status=visa_status)
 
     if visa_result["status"] == "hard_stop":
         return {

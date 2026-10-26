@@ -810,7 +810,8 @@
       : `<button class="btn-approve" onclick="approveJob('${job.job_id}', this)">✅ Approve</button>
          <button class="btn-skip" onclick="skipJob('${job.job_id}', this)">❌ Skip</button>`;
 
-    const linkBtn = url ? `<a class="btn-link" href="${url}" target="_blank" rel="noopener">View →</a>` : '';
+    const linkBtn = url ? `<a class="btn-link" href="${url}" target="_blank" rel="noopener">View →</a>
+      <button class="btn-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:13px;color:#6366f1;" onclick="copyLink('${url}', this)" title="Copy link">🔗 Copy</button>` : '';
 
     return `
       <div class="card ${isDone ? 'done' : ''}" id="job-${job.job_id}">
@@ -922,6 +923,14 @@
     } catch(e) {
       console.error('loadEmails error', e);
     }
+  }
+
+  function copyLink(url, btn) {
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    });
   }
 
   async function approveJob(jobId, btn) {

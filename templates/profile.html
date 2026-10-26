@@ -151,6 +151,16 @@
   {% endif %}
 
   <form method="POST">
+    {% if setup %}
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+      <div style="font-weight:600;color:#1d4ed8;margin-bottom:6px;">👋 Welcome to JobAgent!</div>
+      <div style="color:#1e40af;font-size:14px;line-height:1.6;">
+        Fill in your profile and the agent will automatically find, screen, and surface relevant job openings for you every day.
+        You approve the ones you like — the agent handles the rest.<br><br>
+        <strong>Tip:</strong> Add your skills as a comma-separated list (e.g. Python, SQL, AWS) for better job matching.
+      </div>
+    </div>
+    {% endif %}
 
     <!-- ── Job search preferences ── -->
     <div class="section-label">What jobs are you looking for?</div>
@@ -189,7 +199,7 @@
         <label>VISA STATUS</label>
         <select name="visa_status">
           {% for opt in ['F-1 STEM OPT', 'F-1 OPT', 'H-1B', 'H-1B1', 'TN', 'O-1', 'Green Card', 'US Citizen', 'EAD', 'Other'] %}
-          <option value="{{ opt }}" {% if profile and profile.visa_status == opt %}selected{% endif %}>{{ opt }}</option>
+          <option value="{{ opt }}" {% if profile and profile.visa_status and profile.visa_status == opt %}selected{% endif %}>{{ opt }}</option>
           {% endfor %}
         </select>
       </div>
@@ -197,12 +207,12 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label>OPT / VISA EXPIRY</label>
-        <input type="text" name="opt_expiry" placeholder="July 2028" value="{{ profile.opt_expiry or '' }}"/>
+        <label>VISA / WORK PERMIT EXPIRY</label>
+        <input type="text" name="opt_expiry" placeholder="e.g. July 2028 (leave blank if N/A)" value="{{ profile.opt_expiry or '' }}"/>
       </div>
       <div class="form-group">
         <label>WORK AUTHORIZATION</label>
-        <input type="text" name="work_authorization" placeholder="W-2 only" value="{{ profile.work_authorization or '' }}"/>
+        <input type="text" name="work_authorization" placeholder="e.g. W-2, C2C, no restrictions" value="{{ profile.work_authorization or '' }}"/>
       </div>
     </div>
 
