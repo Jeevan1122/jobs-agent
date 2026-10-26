@@ -1,0 +1,47 @@
+# Web framework
+flask==3.1.3
+werkzeug==3.1.3
+
+# Job scraping
+python-jobspy
+
+# Browser automation
+playwright==1.44.0
+
+# LLM
+openai==1.35.0
+httpx==0.27.2
+groq==0.9.0
+
+# Gmail
+google-api-python-client==2.134.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+
+# Telegram bot
+python-telegram-bot==21.3
+
+# PDF
+pdfplumber
+
+# OAuth
+authlib==1.3.1
+
+# Web server (production)
+gunicorn==22.0.0
+
+# PostgreSQL (production — optional, falls back to SQLite locally)
+psycopg2-binary==2.9.9
+
+# Cloud storage (Cloudflare R2 via S3-compatible API)
+boto3==1.34.144
+
+# Rate limiting
+flask-limiter==3.8.0
+
+# Utilities
+python-dotenv==1.0.1
+schedule==1.2.2
+requests==2.32.3
+beautifulsoup4==4.12.3
+lxml==5.2.2

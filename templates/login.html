@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JobAgent — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 40px 40px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 10px;
+    }
+    .logo h1 { font-size: 21px; font-weight: 700; color: #f8fafc; }
+    .logo p  { font-size: 13px; color: #64748b; margin-top: 3px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1; text-align: center;
+      padding: 8px 0;
+      font-size: 13px; font-weight: 500;
+      color: #64748b;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab.active { background: #1e293b; color: #f8fafc; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    /* Social buttons */
+    .social-buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .social-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 11px 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 14px; font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .social-btn:hover { background: #1e293b; border-color: #475569; }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .social-btn-setup {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px dashed #334155;
+      background: transparent;
+      color: #475569;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+    }
+    .social-btn-setup .left { display:flex; align-items:center; gap:10px; }
+    .social-btn-setup svg { width:16px; height:16px; flex-shrink:0; opacity:0.4; }
+    .setup-badge {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.4px;
+      background: #1e293b; border: 1px solid #334155;
+      color: #64748b; padding: 2px 8px; border-radius: 20px;
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 18px 0; color: #475569; font-size: 12px;
+    }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background:#334155; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display:block; font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:5px; letter-spacing:0.5px; text-transform:uppercase; }
+    input[type=text], input[type=email], input[type=password] {
+      width: 100%; padding: 11px 13px;
+      background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; color: #f8fafc;
+      font-size: 14px; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color 0.15s;
+    }
+    input:focus { border-color: #6366f1; }
+    input::placeholder { color: #475569; }
+
+    .alert {
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 14px;
+    }
+    .alert-error { background:#450a0a; border:1px solid #7f1d1d; color:#fca5a5; }
+    .alert-success { background:#052e16; border:1px solid #166534; color:#86efac; }
+    .alert-info { background:#0c1a4e; border:1px solid #1e3a8a; color:#93c5fd; }
+
+    .btn {
+      width:100%; padding:12px;
+      background:#6366f1; color:#fff;
+      border:none; border-radius:8px;
+      font-size:14px; font-weight:600;
+      font-family:'Inter',sans-serif;
+      cursor:pointer; transition:background 0.15s; margin-top:2px;
+    }
+    .btn:hover { background:#4f46e5; }
+
+    .footer { text-align:center; margin-top:18px; font-size:12px; color:#475569; }
+    .switch-link { color:#6366f1; cursor:pointer; }
+    .switch-link:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <h1>JobAgent</h1>
+    <p>Automated job applications, tailored to you</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</div>
+    <div class="tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
+  </div>
+
+  <!-- ── Sign In panel ── -->
+  <div class="form-panel active" id="panel-signin">
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if info %}
+    <div class="alert alert-info">{{ info }}</div>
+    {% endif %}
+
+    <!-- Social login -->
+    <div class="social-buttons">
+      {% if google_enabled %}
+      <a href="/auth/google" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Google
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+
+      {% if github_enabled %}
+      <a href="/auth/github" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        Continue with GitHub
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          GitHub
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+
+      {% if facebook_enabled %}
+      <a href="/auth/facebook" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Continue with Facebook
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="divider">or sign in with email</div>
+
+    <form method="POST" action="/login">
+      <input type="hidden" name="action" value="login"/>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Your password" autocomplete="current-password" required/>
+      </div>
+      <button type="submit" class="btn">Sign In →</button>
+    </form>
+    <div class="footer">No account? <span class="switch-link" onclick="switchTab('register')">Create one free</span></div>
+  </div>
+
+  <!-- ── Create Account panel ── -->
+  <div class="form-panel" id="panel-register">
+    {% if reg_error %}
+    <div class="alert alert-error">{{ reg_error }}</div>
+    {% endif %}
+
+    <!-- Social signup -->
+    <div class="social-buttons">
+      {% if google_enabled %}
+      <a href="/auth/google" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Sign up with Google
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Google
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+
+      {% if github_enabled %}
+      <a href="/auth/github" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        Sign up with GitHub
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          GitHub
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+
+      {% if facebook_enabled %}
+      <a href="/auth/facebook" class="social-btn">
+        <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Sign up with Facebook
+      </a>
+      {% else %}
+      <div class="social-btn-setup">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </div>
+        <span class="setup-badge">SETUP REQUIRED</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="divider">or create account with email</div>
+
+    <form method="POST" action="/login">
+      <input type="hidden" name="action" value="register"/>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="John Smith" required/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Min. 8 characters" required/>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" placeholder="Repeat password" required/>
+      </div>
+      <button type="submit" class="btn">Create Account →</button>
+    </form>
+    <div class="footer">Already have an account? <span class="switch-link" onclick="switchTab('signin')">Sign in</span></div>
+  </div>
+</div>
+
+<script>
+  const activeTab = "{{ active_tab or 'signin' }}";
+  if (activeTab === 'register') _show('register');
+
+  function switchTab(tab) { _show(tab); }
+  function _show(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+</script>
+</body>
+</html>

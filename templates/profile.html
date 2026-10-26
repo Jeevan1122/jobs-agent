@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JobAgent — {{ 'Complete Your Profile' if setup else 'Edit Profile' }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 40px 20px 60px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 48px 44px 40px;
+      width: 100%; max-width: 600px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    }
+    .header { margin-bottom: 32px; }
+    .step-badge {
+      display: inline-block;
+      background: #1e3a5f; color: #60a5fa;
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    h1 { font-size: 22px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #64748b; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      color: #475569; text-transform: uppercase;
+      margin: 28px 0 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content:''; flex:1; height:1px; background:#334155; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+
+    label { display: block; font-size: 12px; font-weight: 500; color: #94a3b8; margin-bottom: 6px; letter-spacing: 0.3px; }
+    input[type=text], input[type=tel], input[type=date], select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f8fafc;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #6366f1; }
+    input::placeholder, textarea::placeholder { color: #475569; }
+    select option { background: #1e293b; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .hint { font-size: 11px; color: #475569; margin-top: 4px; }
+
+    /* Resume upload */
+    .resume-zone {
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .resume-zone:hover, .resume-zone.drag { border-color: #6366f1; background: rgba(99,102,241,0.05); }
+    .resume-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .resume-icon { font-size: 32px; margin-bottom: 8px; }
+    .resume-title { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+    .resume-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .resume-status {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; border-radius: 8px;
+      background: #052e16; border: 1px solid #166534;
+      color: #86efac; font-size: 13px; margin-top: 12px;
+    }
+    .resume-status.uploading { background: #0c1a4e; border-color: #1e3a8a; color: #93c5fd; }
+    .resume-status.error { background: #450a0a; border-color: #7f1d1d; color: #fca5a5; }
+
+    .error-box {
+      background: #450a0a; border: 1px solid #7f1d1d;
+      color: #fca5a5; padding: 10px 14px;
+      border-radius: 8px; font-size: 13px; margin-bottom: 20px;
+    }
+
+    .actions { display: flex; gap: 12px; margin-top: 24px; }
+    .btn {
+      flex: 1; padding: 13px;
+      background: #6366f1; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn:hover { background: #4f46e5; }
+    .btn-ghost {
+      flex: 0 0 auto; padding: 13px 20px;
+      background: transparent; color: #64748b;
+      border: 1px solid #334155; border-radius: 8px;
+      font-size: 14px; font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer; text-decoration: none;
+      display: flex; align-items: center;
+    }
+    .btn-ghost:hover { color: #94a3b8; border-color: #475569; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    {% if setup %}
+    <div class="step-badge">STEP 2 OF 2 — PROFILE SETUP</div>
+    {% else %}
+    <div class="step-badge">PROFILE SETTINGS</div>
+    {% endif %}
+    <h1>{{ 'Complete your profile' if setup else 'Edit your profile' }}</h1>
+    <p class="subtitle">The agent uses this to search jobs, match your skills, and fill applications for you.</p>
+  </div>
+
+  {% if error %}
+  <div class="error-box">{{ error }}</div>
+  {% endif %}
+
+  <!-- Resume upload (outside the form — uses fetch API) -->
+  <div class="section-label">Resume</div>
+  <div class="resume-zone" id="resumeZone" onclick="document.getElementById('resumeInput').click()">
+    <input type="file" id="resumeInput" accept=".pdf" style="display:none" onchange="uploadResume(this)"/>
+    <div class="resume-icon">📄</div>
+    <div class="resume-title">Upload your resume (PDF)</div>
+    <div class="resume-sub">The agent will tailor this to each job's requirements before applying</div>
+  </div>
+  <div id="resumeStatus" class="resume-status" style="display:none"></div>
+  {% if has_resume %}
+  <div class="resume-status" id="resumeExisting">
+    ✅ Resume on file — agent will tailor it per job description
+    <a href="/api/resume/download" style="color:#4ade80;margin-left:auto;font-size:12px">Download</a>
+  </div>
+  {% endif %}
+
+  <form method="POST">
+
+    <!-- ── Job search preferences ── -->
+    <div class="section-label">What jobs are you looking for?</div>
+
+    <div class="form-group">
+      <label>TARGET JOB TITLES</label>
+      <textarea name="job_titles" placeholder="Data Engineer, ML Engineer, Cloud Data Engineer, Senior Data Engineer">{{ profile.job_titles or '' }}</textarea>
+      <div class="hint">Comma-separated — the agent searches LinkedIn, Indeed & ZipRecruiter for these titles</div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>PREFERRED LOCATION</label>
+        <input type="text" name="preferred_location" placeholder="United States" value="{{ profile.preferred_location or '' }}"/>
+        <div class="hint">City, state, or "United States" for nationwide</div>
+      </div>
+      <div class="form-group">
+        <label>WORK TYPE</label>
+        <select name="remote_preference">
+          {% for val, label in [('any','Any (remote + onsite)'), ('remote','Remote only'), ('hybrid','Hybrid'), ('onsite','On-site only')] %}
+          <option value="{{ val }}" {% if profile and profile.remote_preference == val %}selected{% elif not profile and val == 'any' %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- ── Personal info ── -->
+    <div class="section-label">Personal information</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>PHONE NUMBER</label>
+        <input type="tel" name="phone" placeholder="+1 (555) 000-0000" value="{{ profile.phone or '' }}"/>
+      </div>
+      <div class="form-group">
+        <label>VISA STATUS</label>
+        <select name="visa_status">
+          {% for opt in ['F-1 STEM OPT', 'F-1 OPT', 'H-1B', 'H-1B1', 'TN', 'O-1', 'Green Card', 'US Citizen', 'EAD', 'Other'] %}
+          <option value="{{ opt }}" {% if profile and profile.visa_status == opt %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>OPT / VISA EXPIRY</label>
+        <input type="text" name="opt_expiry" placeholder="July 2028" value="{{ profile.opt_expiry or '' }}"/>
+      </div>
+      <div class="form-group">
+        <label>WORK AUTHORIZATION</label>
+        <input type="text" name="work_authorization" placeholder="W-2 only" value="{{ profile.work_authorization or '' }}"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>LINKEDIN URL</label>
+      <input type="text" name="linkedin" placeholder="https://www.linkedin.com/in/your-profile" value="{{ profile.linkedin or '' }}"/>
+    </div>
+
+    <div class="form-group">
+      <label>GITHUB URL</label>
+      <input type="text" name="github" placeholder="https://github.com/yourusername" value="{{ profile.github or '' }}"/>
+    </div>
+
+    <!-- ── Skills ── -->
+    <div class="section-label">Skills</div>
+
+    <div class="form-group">
+      <label>YOUR SKILLS</label>
+      <textarea name="skills" rows="4" placeholder="Python, SQL, GCP, BigQuery, Apache Spark, Kafka, AWS, Terraform, Docker, Airflow, Databricks...">{{ profile.skills or '' }}</textarea>
+      <div class="hint">Comma-separated — used to calculate ATS match score for each job</div>
+    </div>
+
+    <div class="actions">
+      {% if not setup %}
+      <a href="/" class="btn-ghost">← Back</a>
+      {% endif %}
+      <button type="submit" class="btn">
+        {{ 'Save & Go to Dashboard →' if setup else 'Save Changes' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Drag-and-drop
+  const zone = document.getElementById('resumeZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  });
+  zone.addEventListener('click', e => {
+    if (e.target !== document.getElementById('resumeInput')) {
+      document.getElementById('resumeInput').click();
+    }
+  });
+
+  function uploadResume(input) {
+    const file = input.files[0];
+    if (file) uploadFile(file);
+  }
+
+  function uploadFile(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      showStatus('error', '❌ Only PDF files are accepted.');
+      return;
+    }
+    const existing = document.getElementById('resumeExisting');
+    if (existing) existing.style.display = 'none';
+    showStatus('uploading', '⏳ Uploading ' + file.name + '…');
+    const fd = new FormData();
+    fd.append('file', file);
+    fetch('/api/resume/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          showStatus('success', '✅ ' + file.name + ' uploaded (' + data.size_kb + ' KB) — agent will tailor it per job');
+        } else {
+          showStatus('error', '❌ ' + (data.error || 'Upload failed'));
+        }
+      })
+      .catch(() => showStatus('error', '❌ Network error — please try again'));
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('resumeStatus');
+    el.style.display = 'flex';
+    el.className = 'resume-status' + (type === 'uploading' ? ' uploading' : type === 'error' ? ' error' : '');
+    el.textContent = msg;
+  }
+</script>
+</body>
+</html>

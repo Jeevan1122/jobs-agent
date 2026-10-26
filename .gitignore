@@ -1,0 +1,36 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Environment / secrets
+.env
+token.json
+credentials.json
+
+# Database (local state)
+db/applications.db
+
+# Generated output (tailored resumes, compiled PDFs)
+output/
+
+# Uploaded resumes (personal files — never commit)
+resume/uploaded_resume.pdf
+resume/users/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log

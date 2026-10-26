@@ -1,0 +1,57 @@
+name: Daily Job Agent
+
+on:
+  schedule:
+    - cron: '0 14 * * 1-5'  # 9 AM EST, Mon-Fri
+  workflow_dispatch:  # allow manual trigger from GitHub UI
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Install pdflatex
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-latex-extra
+
+      - name: Run job agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_CREDENTIALS_PATH: credentials.json
+          GMAIL_TOKEN_PATH: token.json
+        run: python main.py --jobs-only
+
+      - name: Run Gmail pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_CREDENTIALS_PATH: credentials.json
+          GMAIL_TOKEN_PATH: token.json
+        run: python main.py --gmail-only
+
+      - name: Upload application logs and output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: application-logs-${{ github.run_number }}
+          path: |
+            db/applications.db
+            output/
+          retention-days: 30

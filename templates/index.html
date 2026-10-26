@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Agent Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: #0f1117;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .sidebar-logo span { color: #6366f1; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 20px;
+      cursor: pointer;
+      color: #8b8fa8;
+      font-size: 14px;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+
+    .nav-item.active {
+      color: #fff;
+      border-left-color: #6366f1;
+      background: rgba(99,102,241,0.12);
+    }
+
+    .nav-icon { font-size: 16px; }
+
+    .badge {
+      margin-left: auto;
+      background: #6366f1;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .badge.zero { background: #374151; }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: none;
+    }
+
+    .status-dot.running {
+      display: inline-block;
+      background: #f59e0b;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-label { font-size: 13px; color: #6b7280; display: none; }
+    .status-label.running { display: inline; color: #f59e0b; }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: #6366f1;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    /* ── Content ── */
+    .content { padding: 28px; flex: 1; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .count-label {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* ── Cards grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 8px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow 0.15s;
+    }
+
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+
+    .card.done { opacity: 0.6; }
+
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+
+    .card-company {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .card-location {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .score-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .score-green { background: #dcfce7; color: #15803d; }
+    .score-yellow { background: #fef9c3; color: #a16207; }
+    .score-red { background: #fee2e2; color: #b91c1c; }
+
+    .visa-badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .visa-ok { background: #dcfce7; color: #15803d; }
+    .visa-gray { background: #fef3c7; color: #92400e; }
+    .visa-stop { background: #fee2e2; color: #b91c1c; }
+
+    .status-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .status-approved { background: #dbeafe; color: #1d4ed8; }
+    .status-skipped { background: #f3f4f6; color: #6b7280; }
+    .status-applied { background: #d1fae5; color: #065f46; }
+
+    .keywords {
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    .keywords strong { color: #111; }
+
+    .keywords .matched { color: #15803d; }
+    .keywords .missing { color: #b91c1c; }
+
+    .notes-text {
+      font-size: 12px;
+      color: #6b7280;
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    .card-footer { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+
+    .btn-approve {
+      background: #10b981;
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-approve:hover { background: #059669; }
+
+    .btn-skip {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-skip:hover { background: #e5e7eb; }
+
+    .btn-link {
+      margin-left: auto;
+      font-size: 12px;
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .btn-link:hover { text-decoration: underline; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Tracker ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .stat-card.applied .stat-number { color: #6366f1; }
+    .stat-card.approved .stat-number { color: #10b981; }
+    .stat-card.skipped .stat-number { color: #9ca3af; }
+    .stat-card.failed .stat-number { color: #ef4444; }
+
+    .tracker-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+
+    .tracker-table th {
+      background: #f9fafb;
+      text-align: left;
+      padding: 11px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .tracker-table td {
+      padding: 13px 16px;
+      font-size: 13px;
+      color: #374151;
+      border-bottom: 1px solid #f9fafb;
+      vertical-align: middle;
+    }
+
+    .tracker-table tr:last-child td { border-bottom: none; }
+    .tracker-table tr:hover td { background: #fafafa; }
+
+    .tracker-company { font-weight: 600; color: #111; }
+    .tracker-title { color: #6b7280; font-size: 12px; margin-top: 2px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 680px;
+      max-width: 95vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 { font-size: 15px; font-weight: 700; color: #111; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #9ca3af;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .modal-close:hover { color: #374151; }
+
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+
+    .cred-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .cred-item {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .cred-label { font-size: 11px; color: #9ca3af; font-weight: 600; text-transform: uppercase; }
+    .cred-value { font-size: 13px; color: #111; font-weight: 500; margin-top: 2px; word-break: break-all; }
+
+    .jd-box {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.6;
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .modal-footer {
+      padding: 14px 24px;
+      border-top: 1px solid #f3f4f6;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* email preview */
+    .email-preview {
+      font-size: 12px;
+      color: #6b7280;
+      background: #f9fafb;
+      border-radius: 6px;
+      padding: 8px 10px;
+      line-height: 1.5;
+      max-height: 72px;
+      overflow: hidden;
+    }
+
+    .draft-preview {
+      font-size: 12px;
+      color: #374151;
+      background: #eff6ff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      line-height: 1.5;
+      max-height: 80px;
+      overflow: hidden;
+      border-left: 3px solid #6366f1;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Job<span>Agent</span> 🤖</div>
+  {% if user_name %}
+  <div style="padding: 0 20px 16px; font-size: 12px; color: #64748b; border-bottom: 1px solid #1e293b; margin-bottom: 8px;">
+    👋 {{ user_name.split()[0] }}
+  </div>
+  {% endif %}
+
+  <div class="nav-item active" id="nav-jobs" onclick="switchTab('jobs')">
+    <span class="nav-icon">💼</span>
+    Jobs
+    <span class="badge zero" id="jobs-badge">0</span>
+  </div>
+
+  <div class="nav-item" id="nav-emails" onclick="switchTab('emails')">
+    <span class="nav-icon">📧</span>
+    Emails
+    <span class="badge zero" id="emails-badge">0</span>
+  </div>
+
+  <div class="nav-item" id="nav-resume" onclick="switchTab('resume')">
+    <span class="nav-icon">📄</span>
+    Resume
+  </div>
+
+  <div class="nav-item" id="nav-tracker" onclick="switchTab('tracker')">
+    <span class="nav-icon">📊</span>
+    Tracker
+  </div>
+
+  <a href="/profile" class="nav-item" style="text-decoration:none;color:inherit;margin-top:auto;">
+    <span class="nav-icon">👤</span>
+    Profile
+  </a>
+
+  <a href="/logout" class="nav-item" style="text-decoration:none;color:#94a3b8;" onclick="return confirm('Sign out?')">
+    <span class="nav-icon">🚪</span>
+    Sign Out
+  </a>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Job Approvals</div>
+    <div class="topbar-right">
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-label" id="status-label">Agent running…</span>
+      <button class="btn btn-secondary" id="clean-btn" onclick="cleanExpired()" style="margin-right:8px;background:#334155;border:1px solid #475569;color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">🧹 Clean Expired</button>
+      <button class="btn btn-primary" id="run-btn" onclick="runAgent()">🔄 Run Agent Now</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Jobs tab -->
+    <div class="tab-panel active" id="tab-jobs">
+      <div class="section-header">
+        <div class="section-title">Job Approvals</div>
+        <div class="count-label" id="jobs-count-label"></div>
+      </div>
+      <div class="card-grid" id="jobs-grid"></div>
+    </div>
+
+    <!-- Resume tab -->
+    <div class="tab-panel" id="tab-resume">
+      <div class="section-header">
+        <div class="section-title">My Resume</div>
+      </div>
+      <div style="max-width:520px;">
+        <div class="card" style="gap:20px;">
+
+          <!-- Current status -->
+          <div id="resume-status-box">
+            <div style="font-size:13px;color:#6b7280;">Checking resume…</div>
+          </div>
+
+          <!-- Upload area -->
+          <div id="upload-area" style="border:2px dashed #d1d5db;border-radius:10px;padding:36px 24px;text-align:center;cursor:pointer;transition:border-color 0.15s;"
+               onclick="document.getElementById('resume-file-input').click()"
+               ondragover="event.preventDefault();this.style.borderColor='#6366f1'"
+               ondragleave="this.style.borderColor='#d1d5db'"
+               ondrop="handleDrop(event)">
+            <div style="font-size:32px;margin-bottom:10px;">📄</div>
+            <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:4px;">Drop your PDF here</div>
+            <div style="font-size:12px;color:#9ca3af;">or click to browse — PDF only</div>
+            <input type="file" id="resume-file-input" accept=".pdf" style="display:none" onchange="uploadResume(this.files[0])">
+          </div>
+
+          <!-- Upload progress -->
+          <div id="upload-msg" style="display:none;font-size:13px;text-align:center;"></div>
+
+          <!-- Download button (shown after upload) -->
+          <div id="download-row" style="display:none;">
+            <a href="/api/resume/download" class="btn btn-primary" style="text-decoration:none;display:inline-block;">
+              ⬇️ Download Current Resume
+            </a>
+          </div>
+
+          <div style="font-size:12px;color:#9ca3af;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:14px;">
+            <strong style="color:#374151;">How it works:</strong><br>
+            Upload your PDF resume here. When you approve a job, the agent will attach this PDF to the application. The ATS scoring already uses your skills from the system — the PDF is what actually gets submitted.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracker tab -->
+    <div class="tab-panel" id="tab-tracker">
+      <div class="section-header">
+        <div class="section-title">Application Tracker</div>
+        <div class="count-label" id="tracker-count-label"></div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row" id="tracker-stats">
+        <div class="stat-card"><div class="stat-number" id="stat-total">—</div><div class="stat-label">Jobs Found</div></div>
+        <div class="stat-card applied"><div class="stat-number" id="stat-applied">—</div><div class="stat-label">Applied</div></div>
+        <div class="stat-card approved"><div class="stat-number" id="stat-approved">—</div><div class="stat-label">Approved</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-pending">—</div><div class="stat-label">Pending</div></div>
+        <div class="stat-card skipped"><div class="stat-number" id="stat-skipped">—</div><div class="stat-label">Skipped</div></div>
+        <div class="stat-card failed"><div class="stat-number" id="stat-failed">—</div><div class="stat-label">Failed</div></div>
+      </div>
+
+      <!-- Applications table -->
+      <div id="tracker-table-wrap">
+        <table class="tracker-table" id="tracker-table">
+          <thead>
+            <tr>
+              <th>Company / Role</th>
+              <th>Location</th>
+              <th>ATS Score</th>
+              <th>Status</th>
+              <th>Date Applied</th>
+              <th>Link</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tracker-tbody"></tbody>
+        </table>
+        <div id="tracker-empty" style="display:none;" class="empty-state">
+          <div class="icon">📋</div>
+          <p>No applications yet. Approve a job to get started.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emails tab -->
+    <div class="tab-panel" id="tab-emails">
+      <div class="section-header">
+        <div class="section-title">Recruiter Emails</div>
+        <div class="count-label" id="emails-count-label"></div>
+      </div>
+      <div class="card-grid" id="emails-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal-overlay" id="details-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Application Details</h3>
+      <button class="modal-close" onclick="closeDetailsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div>
+        <div class="modal-section-title">📋 Credentials Used to Submit</div>
+        <div class="cred-grid" id="modal-creds"></div>
+      </div>
+
+      <div>
+        <div class="modal-section-title">📄 Job Description</div>
+        <div class="jd-box" id="modal-jd">No description saved.</div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <a id="modal-resume-link" href="#" class="btn btn-primary" style="text-decoration:none;" target="_blank">
+        ⬇️ Download Submitted Resume
+      </a>
+      <a id="modal-job-link" href="#" class="btn" style="background:#f3f4f6;color:#374151;text-decoration:none;" target="_blank">
+        🔗 View Job Posting
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentTab = 'jobs';
+  let pollInterval = null;
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+    document.getElementById('nav-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    const titles = { jobs: 'Job Approvals', emails: 'Recruiter Emails', resume: 'My Resume', tracker: 'Application Tracker' };
+    document.getElementById('topbar-title').textContent = titles[tab] || tab;
+    if (tab === 'jobs') loadJobs();
+    else if (tab === 'emails') loadEmails();
+    else if (tab === 'resume') loadResumeStatus();
+    else if (tab === 'tracker') loadTracker();
+  }
+
+  async function loadResumeStatus() {
+    const res = await fetch('/api/resume/status');
+    const data = await res.json();
+    const box = document.getElementById('resume-status-box');
+    const dlRow = document.getElementById('download-row');
+    if (data.exists) {
+      box.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+        <span style="font-size:20px;">✅</span>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#15803d;">Resume uploaded</div>
+          <div style="font-size:12px;color:#6b7280;">${data.size_kb} KB · Uploaded ${data.uploaded_at}</div>
+        </div>
+      </div>`;
+      dlRow.style.display = 'block';
+    } else {
+      box.innerHTML = `<div style="padding:12px 16px;background:#fef9c3;border-radius:8px;border:1px solid #fde68a;font-size:13px;color:#92400e;">
+        ⚠️ No resume uploaded yet. Upload your PDF below.
+      </div>`;
+      dlRow.style.display = 'none';
+    }
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    document.getElementById('upload-area').style.borderColor = '#d1d5db';
+    const file = event.dataTransfer.files[0];
+    if (file) uploadResume(file);
+  }
+
+  async function uploadResume(file) {
+    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+      showUploadMsg('❌ Please select a PDF file.', '#b91c1c');
+      return;
+    }
+    showUploadMsg('⏳ Uploading…', '#6b7280');
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/resume/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.success) {
+        showUploadMsg(`✅ Uploaded successfully (${data.size_kb} KB)`, '#15803d');
+        loadResumeStatus();
+      } else {
+        showUploadMsg(`❌ ${data.error}`, '#b91c1c');
+      }
+    } catch(e) {
+      showUploadMsg('❌ Upload failed. Try again.', '#b91c1c');
+    }
+  }
+
+  function showUploadMsg(text, color) {
+    const el = document.getElementById('upload-msg');
+    el.style.display = 'block';
+    el.style.color = color;
+    el.textContent = text;
+  }
+
+  function scoreBadge(score) {
+    score = score || 0;
+    const cls = score >= 65 ? 'score-green' : score >= 40 ? 'score-yellow' : 'score-red';
+    return `<span class="score-badge ${cls}">${score}% ATS</span>`;
+  }
+
+  function visaBadge(flag) {
+    if (!flag || flag === 'ok') return `<span class="visa-badge visa-ok">✅ Visa OK</span>`;
+    if (flag === 'gray_area') return `<span class="visa-badge visa-gray">⚠️ Gray Area</span>`;
+    return `<span class="visa-badge visa-stop">🚫 Hard Stop</span>`;
+  }
+
+  function statusBadge(status) {
+    if (status === 'approved') return `<span class="status-badge status-approved">✅ Approved</span>`;
+    if (status === 'applied')  return `<span class="status-badge status-applied">🚀 Applied</span>`;
+    if (status === 'failed')   return `<span class="status-badge" style="background:#fee2e2;color:#991b1b">❌ Failed</span>`;
+    if (status === 'skipped')  return `<span class="status-badge status-skipped">⏭ Skipped</span>`;
+    return '';
+  }
+
+  function buildJobCard(job) {
+    const isDone = ['approved','applied','skipped'].includes(job.status);
+    const matched = (job.matched_keywords || []).slice(0, 6).join(', ') || '—';
+    const missing = (job.missing_required || []).slice(0, 4).join(', ') || 'none';
+    const notes = job.notes || '';
+    const url = job.url && job.url !== 'nan' ? job.url : null;
+
+    const actionBtns = isDone
+      ? statusBadge(job.status)
+      : `<button class="btn-approve" onclick="approveJob('${job.job_id}', this)">✅ Approve</button>
+         <button class="btn-skip" onclick="skipJob('${job.job_id}', this)">❌ Skip</button>`;
+
+    const linkBtn = url ? `<a class="btn-link" href="${url}" target="_blank" rel="noopener">View →</a>` : '';
+
+    return `
+      <div class="card ${isDone ? 'done' : ''}" id="job-${job.job_id}">
+        <div class="card-header">
+          <div>
+            <div class="card-company">${esc(job.company || 'Unknown')}</div>
+            <div class="card-title">${esc(job.title || '')}</div>
+            <div class="card-location">${esc(job.location || '')}</div>
+          </div>
+        </div>
+        <div class="badges">
+          ${scoreBadge(job.ats_score)}
+          ${visaBadge(job.visa_flag)}
+        </div>
+        <div class="keywords">
+          <strong>Matched:</strong> <span class="matched">${esc(matched)}</span><br>
+          <strong>Missing:</strong> <span class="missing">${esc(missing)}</span>
+        </div>
+        ${notes ? `<div class="notes-text">${esc(notes)}</div>` : ''}
+        <div class="card-footer">
+          ${actionBtns}
+          ${linkBtn}
+        </div>
+      </div>`;
+  }
+
+  function buildEmailCard(email) {
+    const isDone = ['approved','skipped','sent'].includes(email.status);
+    const preview = email.body_preview || '';
+    const draft = email.draft_reply || '';
+
+    const actionBtns = isDone
+      ? statusBadge(email.status)
+      : `<button class="btn-approve" onclick="approveEmail(${email.id}, this)">✅ Approve</button>
+         <button class="btn-skip" onclick="skipEmail(${email.id}, this)">❌ Skip</button>`;
+
+    return `
+      <div class="card ${isDone ? 'done' : ''}" id="email-${email.id}">
+        <div class="card-header">
+          <div>
+            <div class="card-company">${esc(email.company || 'Unknown')}</div>
+            <div class="card-title">${esc(email.role || '')}</div>
+            <div class="card-location">${esc(email.sender || '')}</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="visa-badge">${esc(email.category || 'unknown')}</span>
+        </div>
+        ${preview ? `<div class="email-preview">${esc(preview.slice(0, 200))}</div>` : ''}
+        ${draft ? `<div class="draft-preview"><strong>Draft:</strong> ${esc(draft.slice(0, 240))}</div>` : ''}
+        <div class="card-footer">${actionBtns}</div>
+      </div>`;
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function loadJobs() {
+    try {
+      const res = await fetch('/api/jobs');
+      const jobs = await res.json();
+      const grid = document.getElementById('jobs-grid');
+      const pending = jobs.filter(j => j.status === 'pending').length;
+      const badge = document.getElementById('jobs-badge');
+      badge.textContent = pending;
+      badge.className = 'badge' + (pending === 0 ? ' zero' : '');
+      document.getElementById('jobs-count-label').textContent =
+        `${pending} pending · ${jobs.length} total`;
+
+      if (jobs.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+          <div class="icon">🔍</div>
+          <p>No jobs found yet. Click <strong>Run Agent Now</strong> to start scraping.</p>
+        </div>`;
+        return;
+      }
+
+      // pending first, then done
+      const sorted = [...jobs.filter(j => j.status === 'pending'), ...jobs.filter(j => j.status !== 'pending')];
+      grid.innerHTML = sorted.map(buildJobCard).join('');
+    } catch(e) {
+      console.error('loadJobs error', e);
+    }
+  }
+
+  async function loadEmails() {
+    try {
+      const res = await fetch('/api/emails');
+      const emails = await res.json();
+      const grid = document.getElementById('emails-grid');
+      const pending = emails.filter(e => e.status === 'pending').length;
+      const badge = document.getElementById('emails-badge');
+      badge.textContent = pending;
+      badge.className = 'badge' + (pending === 0 ? ' zero' : '');
+      document.getElementById('emails-count-label').textContent =
+        `${pending} pending · ${emails.length} total`;
+
+      if (emails.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+          <div class="icon">📭</div>
+          <p>No recruiter emails found yet.</p>
+        </div>`;
+        return;
+      }
+
+      const sorted = [...emails.filter(e => e.status === 'pending'), ...emails.filter(e => e.status !== 'pending')];
+      grid.innerHTML = sorted.map(buildEmailCard).join('');
+    } catch(e) {
+      console.error('loadEmails error', e);
+    }
+  }
+
+  async function approveJob(jobId, btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Tailoring…';
+    btn.style.background = '#f59e0b';
+
+    await fetch(`/api/jobs/${jobId}/approve`, { method: 'POST' });
+
+    // Poll submission status until done or failed
+    const poll = setInterval(async () => {
+      const res = await fetch(`/api/jobs/${jobId}/submission_status`);
+      const s = await res.json();
+      if (s.status === 'tailoring') {
+        btn.textContent = '⏳ Tailoring resume…';
+      } else if (s.status === 'submitting') {
+        btn.textContent = '🚀 Submitting…';
+        btn.style.background = '#6366f1';
+      } else if (s.status === 'done') {
+        clearInterval(poll);
+        btn.textContent = '✅ Submitted!';
+        btn.style.background = '#10b981';
+        setTimeout(loadJobs, 1500);
+      } else if (s.status === 'failed') {
+        clearInterval(poll);
+        btn.textContent = '❌ Failed';
+        btn.style.background = '#ef4444';
+        btn.title = s.error || 'Submission failed';
+        setTimeout(loadJobs, 1500);
+      }
+    }, 2000);
+  }
+
+  async function skipJob(jobId, btn) {
+    btn.disabled = true;
+    await fetch(`/api/jobs/${jobId}/skip`, { method: 'POST' });
+    loadJobs();
+  }
+
+  async function approveEmail(id, btn) {
+    btn.disabled = true;
+    await fetch(`/api/emails/${id}/approve`, { method: 'POST' });
+    loadEmails();
+  }
+
+  async function skipEmail(id, btn) {
+    btn.disabled = true;
+    await fetch(`/api/emails/${id}/skip`, { method: 'POST' });
+    loadEmails();
+  }
+
+  async function runAgent() {
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running…';
+    await fetch('/api/run', { method: 'POST' });
+    pollAgentStatus();
+  }
+
+  function pollAgentStatus() {
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(async () => {
+      const res = await fetch('/api/status');
+      const { running } = await res.json();
+      const dot = document.getElementById('status-dot');
+      const label = document.getElementById('status-label');
+      const btn = document.getElementById('run-btn');
+
+      if (running) {
+        dot.classList.add('running');
+        label.classList.add('running');
+      } else {
+        dot.classList.remove('running');
+        label.classList.remove('running');
+        btn.disabled = false;
+        btn.textContent = '🔄 Run Agent Now';
+        clearInterval(pollInterval);
+        loadJobs();
+      }
+    }, 2000);
+  }
+
+  async function cleanExpired() {
+    const btn = document.getElementById('clean-btn');
+    btn.textContent = '⏳ Checking…';
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/jobs/clean-expired', {method:'POST'});
+      const d = await r.json();
+      btn.textContent = d.removed > 0 ? `✅ Removed ${d.removed}` : '✅ All active';
+      setTimeout(() => { btn.textContent = '🧹 Clean Expired'; btn.disabled = false; }, 3000);
+      loadJobs();
+    } catch(e) {
+      btn.textContent = '🧹 Clean Expired';
+      btn.disabled = false;
+    }
+  }
+
+  // Auto-refresh every 30s
+  setInterval(() => {
+    if (currentTab === 'jobs') loadJobs();
+    else loadEmails();
+  }, 30000);
+
+  async function loadTracker() {
+    try {
+      const res = await fetch('/api/tracker');
+      const data = await res.json();
+      const s = data.stats;
+
+      document.getElementById('stat-total').textContent = s.total;
+      document.getElementById('stat-applied').textContent = s.applied;
+      document.getElementById('stat-approved').textContent = s.approved;
+      document.getElementById('stat-pending').textContent = s.pending;
+      document.getElementById('stat-skipped').textContent = s.skipped;
+      document.getElementById('stat-failed').textContent = s.failed;
+
+      const apps = data.applications;
+      document.getElementById('tracker-count-label').textContent =
+        `${s.applied} applied · ${s.approved} approved · ${s.total} total found`;
+
+      const tbody = document.getElementById('tracker-tbody');
+      const empty = document.getElementById('tracker-empty');
+      const table = document.getElementById('tracker-table');
+
+      if (apps.length === 0) {
+        table.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      table.style.display = 'table';
+      empty.style.display = 'none';
+
+      tbody.innerHTML = apps.map(j => {
+        const scoreClass = j.ats_score >= 65 ? 'score-green' : j.ats_score >= 40 ? 'score-yellow' : 'score-red';
+        const statusMap = {
+          applied: '<span class="status-badge status-applied">🚀 Applied</span>',
+          approved: '<span class="status-badge status-approved">✅ Approved</span>',
+          failed: '<span class="status-badge" style="background:#fee2e2;color:#b91c1c;">❌ Failed</span>',
+        };
+        const dateStr = j.date_applied
+          ? new Date(j.date_applied).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+          : j.date_found
+          ? new Date(j.date_found).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+          : '—';
+        const link = j.url && j.url !== 'nan'
+          ? `<a href="${esc(j.url)}" target="_blank" class="btn-link">View →</a>`
+          : '—';
+        return `<tr>
+          <td>
+            <div class="tracker-company">${esc(j.company || 'Unknown')}</div>
+            <div class="tracker-title">${esc(j.title || '')}</div>
+            ${j.status === 'failed' ? `<div style="color:#ef4444;font-size:11px;margin-top:3px;">No supported ATS — apply manually</div>` : ''}
+          </td>
+          <td>${esc(j.location || '—')}</td>
+          <td><span class="score-badge ${scoreClass}">${j.ats_score || 0}%</span></td>
+          <td>${statusMap[j.status] || j.status}</td>
+          <td style="color:#6b7280;font-size:12px;">${dateStr}</td>
+          <td>${link}</td>
+          <td style="display:flex;gap:6px;align-items:center;">
+            <button class="btn" style="background:#6366f1;color:#fff;padding:5px 12px;font-size:12px;" onclick="openDetails('${j.job_id}')">Details</button>
+            ${j.status === 'failed' ? `<a href="${esc(j.url)}" target="_blank" class="btn" style="background:#f59e0b;color:#fff;padding:5px 12px;font-size:12px;text-decoration:none;">Apply Manually →</a>` : ''}
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      console.error('loadTracker error', e);
+    }
+  }
+
+  async function openDetails(jobId) {
+    document.getElementById('details-modal').classList.add('open');
+    document.getElementById('modal-title').textContent = 'Loading…';
+    document.getElementById('modal-creds').innerHTML = '';
+    document.getElementById('modal-jd').textContent = 'Loading…';
+
+    try {
+      const res = await fetch(`/api/tracker/${jobId}/details`);
+      const data = await res.json();
+      const job = data.job;
+      const creds = data.credentials;
+
+      document.getElementById('modal-title').textContent =
+        `${job.company || 'Unknown'} — ${job.title || ''}`;
+
+      const credFields = [
+        ['Name', creds.name],
+        ['Email Used', creds.email],
+        ['Phone', creds.phone],
+        ['Submitted Via', creds.submitted_via],
+        ['Visa Status', creds.visa_status],
+        ['OPT Expiry', creds.opt_expiry],
+        ['Work Auth', creds.work_authorization],
+        ['LinkedIn', creds.linkedin],
+        ['GitHub', creds.github],
+      ];
+      document.getElementById('modal-creds').innerHTML = credFields.map(([label, val]) => `
+        <div class="cred-item">
+          <div class="cred-label">${label}</div>
+          <div class="cred-value">${esc(val || '—')}</div>
+        </div>`).join('');
+
+      const jd = job.description && job.description !== 'nan' ? job.description : 'No job description saved for this application.';
+      document.getElementById('modal-jd').textContent = jd;
+
+      document.getElementById('modal-resume-link').href = `/api/tracker/${jobId}/resume`;
+      const jobUrl = job.url && job.url !== 'nan' ? job.url : '#';
+      document.getElementById('modal-job-link').href = jobUrl;
+      document.getElementById('modal-job-link').style.display = jobUrl === '#' ? 'none' : 'inline-block';
+
+    } catch(e) {
+      document.getElementById('modal-title').textContent = 'Error loading details';
+    }
+  }
+
+  function closeDetailsModal() {
+    document.getElementById('details-modal').classList.remove('open');
+  }
+
+  function closeModal(event) {
+    if (event.target === document.getElementById('details-modal')) closeDetailsModal();
+  }
+
+  // Initial load
+  loadJobs();
+  loadResumeStatus();
+</script>
+</body>
+</html>
