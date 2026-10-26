@@ -476,7 +476,11 @@ def submit_application(job_dict, resume_pdf_path, dry_run=True):
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
+            headless = os.getenv("PLAYWRIGHT_HEADLESS", "true").lower() != "false"
+            browser = p.chromium.launch(
+                headless=headless,
+                args=["--no-sandbox", "--disable-setuid-sandbox"],
+            )
             context = browser.new_context(user_agent=UA)
             page = context.new_page()
 
