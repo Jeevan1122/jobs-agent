@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JobAgent — AI-Powered Job Search Automation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f172a;
+      --surface:  #1e293b;
+      --border:   #334155;
+      --muted:    #64748b;
+      --text:     #f8fafc;
+      --sub:      #94a3b8;
+      --indigo:   #6366f1;
+      --purple:   #8b5cf6;
+      --green:    #10b981;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--indigo), var(--purple));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .nav-logo span { font-size: 17px; font-weight: 700; color: var(--text); }
+    .nav-actions { display: flex; gap: 10px; }
+    .btn-nav {
+      padding: 8px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-ghost { background: transparent; color: var(--sub); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--surface); color: var(--text); }
+    .btn-primary { background: var(--indigo); color: #fff; border: none; }
+    .btn-primary:hover { background: #4f46e5; }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 90px 24px 70px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.3);
+      color: #a5b4fc; border-radius: 999px;
+      padding: 5px 14px; font-size: 13px; font-weight: 500;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--indigo), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 18px; color: var(--sub);
+      max-width: 580px; margin: 0 auto 36px;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-hero {
+      padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-hero-primary {
+      background: linear-gradient(135deg, var(--indigo), var(--purple));
+      color: #fff; border: none;
+      box-shadow: 0 4px 24px rgba(99,102,241,.4);
+    }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,.5); }
+    .btn-hero-secondary {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-hero-secondary:hover { background: #293548; }
+    .hero-note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+    /* ── STATS ── */
+    .stats {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 40px;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      max-width: 860px; margin: 0 auto;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 32px; font-weight: 800; color: var(--text); }
+    .stat-num span { background: linear-gradient(135deg, var(--indigo), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── FEATURES ── */
+    .section { max-width: 1000px; margin: 0 auto; padding: 80px 24px; }
+    .section-label {
+      text-align: center; font-size: 13px; font-weight: 600;
+      color: var(--indigo); letter-spacing: .08em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center; font-size: clamp(26px, 4vw, 38px);
+      font-weight: 800; margin-bottom: 12px;
+    }
+    .section-sub {
+      text-align: center; color: var(--sub); font-size: 16px;
+      max-width: 520px; margin: 0 auto 56px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: var(--indigo); transform: translateY(-3px); }
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: rgba(99,102,241,.12);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p  { font-size: 14px; color: var(--sub); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 680px; margin: 0 auto; }
+    .step {
+      display: flex; gap: 24px; align-items: flex-start;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 40px; height: 40px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--indigo), var(--purple));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px;
+    }
+    .step-body h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .step-body p  { font-size: 14px; color: var(--sub); }
+
+    /* ── COMPARISON ── */
+    .comparison {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      max-width: 780px; margin: 0 auto;
+    }
+    @media (max-width: 600px) { .comparison { grid-template-columns: 1fr; } }
+    .comp-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+    }
+    .comp-card.good { border-color: rgba(16,185,129,.3); background: rgba(16,185,129,.04); }
+    .comp-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .comp-card h3 span { margin-right: 8px; }
+    .comp-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; color: var(--sub); margin-bottom: 12px;
+    }
+    .comp-item .icon { flex-shrink: 0; margin-top: 1px; }
+    .comp-card.good .comp-item { color: #d1fae5; }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.15));
+      border: 1px solid rgba(99,102,241,.3);
+      border-radius: 24px;
+      padding: 60px 40px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .cta-banner h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 800; margin-bottom: 14px; }
+    .cta-banner p  { font-size: 16px; color: var(--sub); margin-bottom: 32px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 32px 24px;
+      color: var(--muted); font-size: 13px;
+    }
+
+    /* ── CHECKLIST ── */
+    .checklist { list-style: none; max-width: 520px; margin: 0 auto 40px; text-align: left; }
+    .checklist li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 15px; color: var(--sub);
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li .ck { color: var(--green); font-size: 18px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="nav-logo-icon">🤖</div>
+    <span>JobAgent</span>
+  </a>
+  <div class="nav-actions">
+    <a href="/login?tab=signin" class="btn-nav btn-ghost">Sign In</a>
+    <a href="/login?tab=register" class="btn-nav btn-primary">Get Started Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🚀 AI-Powered Job Search Automation</div>
+  <h1>Stop applying manually.<br><span>Let AI do the work.</span></h1>
+  <p>JobAgent finds relevant jobs, scores your match, tailors your resume, and auto-fills applications — so you can apply to more jobs in less time.</p>
+  <div class="hero-cta">
+    <a href="/login?tab=register" class="btn-hero btn-hero-primary">Start for Free →</a>
+    <a href="#how-it-works" class="btn-hero btn-hero-secondary">See How It Works</a>
+  </div>
+  <p class="hero-note">Free to use · No credit card required · Works for all visa types</p>
+</section>
+
+<!-- STATS -->
+<div style="max-width:1000px;margin:0 auto;padding:0 24px;">
+  <div class="stats">
+    <div class="stat"><div class="stat-num"><span>3–4</span>×</div><div class="stat-label">More jobs reviewed daily</div></div>
+    <div class="stat"><div class="stat-num"><span>24h</span></div><div class="stat-label">Fresh jobs scraped daily</div></div>
+    <div class="stat"><div class="stat-num"><span>5+</span></div><div class="stat-label">Job boards covered</div></div>
+    <div class="stat"><div class="stat-num"><span>100%</span></div><div class="stat-label">Free to use</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section">
+  <div class="section-label">What it does</div>
+  <h2 class="section-title">Everything you need to land your next job</h2>
+  <p class="section-sub">One tool that handles the entire job search workflow from finding to applying.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>Find Relevant Jobs</h3>
+      <p>Scrapes LinkedIn, Indeed, ZipRecruiter, and Greenhouse daily based on your job titles, location, and preferences.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Check Your Match %</h3>
+      <p>Every job gets an ATS score showing how well your skills match the job description — before you apply.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📄</div>
+      <h3>Tailor Your Resume</h3>
+      <p>AI rewrites your resume for each job description, matching keywords and boosting your chances of passing ATS filters.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Auto-Fill Applications</h3>
+      <p>Automatically fills out application forms on Greenhouse, Lever, Workday, and more — saving hours per week.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Visa & Sponsorship Filter</h3>
+      <p>Automatically skips jobs that don't sponsor visas or have citizenship requirements — no wasted applications.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📬</div>
+      <h3>Email Notifications</h3>
+      <p>Get an email the moment new matching jobs are found. Review and approve from anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works" style="padding-top:40px;">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Set up once, apply on autopilot</h2>
+  <p class="section-sub">The whole process takes under 5 minutes to set up.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Create your profile</h3>
+        <p>Enter your job titles, skills, location, and visa status. Upload your resume PDF. That's it.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Run the agent</h3>
+        <p>Click "Run Agent Now" — it scrapes 5 job boards, screens every listing, and scores each one against your skills.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Review & approve</h3>
+        <p>Browse the curated job cards in your dashboard. See your match score, matched keywords, and what's missing.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Agent applies for you</h3>
+        <p>Hit Approve — the agent tailors your resume for that job and auto-fills the application form. You get a confirmation email when it's done.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="section" style="padding-top:40px;">
+  <div class="section-label">Why JobAgent</div>
+  <h2 class="section-title">Manual job search vs. JobAgent</h2>
+  <p class="section-sub">Instead of spending hours on job boards, let the agent do the heavy lifting.</p>
+
+  <div class="comparison">
+    <div class="comp-card">
+      <h3><span>😓</span> Without JobAgent</h3>
+      <div class="comp-item"><span class="icon">❌</span><span>Spend 2–3 hrs/day browsing job boards</span></div>
+      <div class="comp-item"><span class="icon">❌</span><span>Apply to 3–4 jobs with manual copy-paste</span></div>
+      <div class="comp-item"><span class="icon">❌</span><span>Forget to follow up or miss postings</span></div>
+      <div class="comp-item"><span class="icon">❌</span><span>Send the same resume to every job</span></div>
+      <div class="comp-item"><span class="icon">❌</span><span>Waste time on jobs that need sponsorship</span></div>
+    </div>
+    <div class="comp-card good">
+      <h3><span>🤖</span> With JobAgent</h3>
+      <div class="comp-item"><span class="icon">✅</span><span>Agent scans 5 boards daily automatically</span></div>
+      <div class="comp-item"><span class="icon">✅</span><span>Review curated, scored jobs in minutes</span></div>
+      <div class="comp-item"><span class="icon">✅</span><span>Get notified by email when new jobs appear</span></div>
+      <div class="comp-item"><span class="icon">✅</span><span>Resume tailored for every single job</span></div>
+      <div class="comp-item"><span class="icon">✅</span><span>Visa filters remove ineligible jobs instantly</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IS IT FOR -->
+<section class="section" style="padding-top:40px;">
+  <div class="section-label">Who it's for</div>
+  <h2 class="section-title">Built for every job seeker</h2>
+  <p class="section-sub">Works for all visa statuses and experience levels.</p>
+
+  <ul class="checklist">
+    <li><span class="ck">✅</span><span><strong>International students (F-1 OPT/CPT)</strong> — automatically skips jobs that don't sponsor visas</span></li>
+    <li><span class="ck">✅</span><span><strong>H-1B, TN, O-1 visa holders</strong> — filters jobs by your specific work authorization</span></li>
+    <li><span class="ck">✅</span><span><strong>US Citizens & Green Card holders</strong> — no sponsorship filters, see all jobs</span></li>
+    <li><span class="ck">✅</span><span><strong>New grads & students</strong> — find entry-level roles matching your skills</span></li>
+    <li><span class="ck">✅</span><span><strong>Experienced professionals</strong> — senior, staff, and lead roles across all industries</span></li>
+    <li><span class="ck">✅</span><span><strong>Career changers</strong> — ATS scoring shows exactly what skills to add to your resume</span></li>
+  </ul>
+</section>
+
+<!-- CTA -->
+<section class="section" style="padding-top: 20px; padding-bottom: 80px;">
+  <div class="cta-banner">
+    <h2>Ready to supercharge your job search?</h2>
+    <p>Join job seekers already using JobAgent to apply smarter and faster — completely free.</p>
+    <a href="/login?tab=register" class="btn-hero btn-hero-primary">Create Free Account →</a>
+    <p style="margin-top:16px;font-size:13px;color:var(--muted);">No credit card · No limits · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 JobAgent · Built with AI · <a href="/login" style="color:var(--indigo);text-decoration:none;">Sign In</a></p>
+</footer>
+
+</body>
+</html>

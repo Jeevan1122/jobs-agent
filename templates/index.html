@@ -385,6 +385,54 @@
     .tracker-title { color: #6b7280; font-size: 12px; margin-top: 2px; }
 
     /* ── Modal ── */
+    /* ── Referral modal ── */
+    .referral-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .referral-modal-overlay.open { display: flex; }
+
+    .referral-modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 600px;
+      max-width: 95vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+
+    .btn-referral {
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 7px 12px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-referral:hover { background: #ddd6fe; }
+
+    .referral-msg-box {
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      border-left: 3px solid #7c3aed;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
     .modal-overlay {
       display: none;
       position: fixed;
@@ -671,6 +719,46 @@
   </div>
 </div>
 
+<!-- Referral Modal -->
+<div class="referral-modal-overlay" id="referral-modal" onclick="closeReferralModal(event)">
+  <div class="referral-modal">
+    <div class="modal-header">
+      <h3 id="referral-modal-title">🤝 Find a Referral</h3>
+      <button class="modal-close" onclick="document.getElementById('referral-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="gap:20px;">
+
+      <div style="background:#ede9fe;border-radius:10px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:600;color:#5b21b6;margin-bottom:6px;">
+          💡 How to get a referral
+        </div>
+        <div style="font-size:13px;color:#374151;line-height:1.6;">
+          Find someone who works at this company on LinkedIn, send them the message below, and ask if they'd refer you. A referral can 10× your chances of getting an interview.
+        </div>
+      </div>
+
+      <div>
+        <div class="modal-section-title">🔍 Search Employees on LinkedIn</div>
+        <a id="referral-linkedin-btn" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none;display:inline-block;margin-bottom:8px;background:#0077b5;">
+          Open LinkedIn Search →
+        </a>
+        <div style="font-size:12px;color:#9ca3af;">Search for employees at this company, then connect and send the message below.</div>
+      </div>
+
+      <div>
+        <div class="modal-section-title">✉️ AI-Generated Referral Message</div>
+        <div id="referral-msg-loading" style="font-size:13px;color:#6b7280;">⏳ Generating personalized message…</div>
+        <div id="referral-msg-box" class="referral-msg-box" style="display:none;"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="copyReferralMsg()" id="copy-referral-btn">📋 Copy Message</button>
+      <button class="btn" style="background:#f3f4f6;color:#374151;" onclick="document.getElementById('referral-modal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Details Modal -->
 <div class="modal-overlay" id="details-modal" onclick="closeModal(event)">
   <div class="modal">
@@ -834,6 +922,11 @@
         <div class="card-footer">
           ${actionBtns}
           ${linkBtn}
+        </div>
+        <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-top:2px;">
+          <button class="btn-referral" onclick="findReferral('${job.job_id}', '${esc(job.company || '')}', '${esc(job.title || '')}')">
+            🤝 Find Referral
+          </button>
         </div>
       </div>`;
   }
@@ -1153,6 +1246,45 @@
 
   function closeModal(event) {
     if (event.target === document.getElementById('details-modal')) closeDetailsModal();
+  }
+
+  // ── Referral finder ──
+  let _referralMsg = '';
+
+  async function findReferral(jobId, company, title) {
+    const modal = document.getElementById('referral-modal');
+    document.getElementById('referral-modal-title').textContent = `🤝 Find a Referral · ${company}`;
+    document.getElementById('referral-msg-loading').style.display = 'block';
+    document.getElementById('referral-msg-box').style.display = 'none';
+    document.getElementById('referral-linkedin-btn').href = '#';
+    modal.classList.add('open');
+
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/referral`);
+      const data = await res.json();
+      document.getElementById('referral-linkedin-btn').href = data.linkedin_search_url;
+      _referralMsg = data.message || '';
+      document.getElementById('referral-msg-box').textContent = _referralMsg;
+      document.getElementById('referral-msg-loading').style.display = 'none';
+      document.getElementById('referral-msg-box').style.display = 'block';
+    } catch(e) {
+      document.getElementById('referral-msg-loading').textContent = '❌ Failed to load. Please try again.';
+    }
+  }
+
+  function copyReferralMsg() {
+    if (!_referralMsg) return;
+    navigator.clipboard.writeText(_referralMsg).then(() => {
+      const btn = document.getElementById('copy-referral-btn');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Message', 2000);
+    });
+  }
+
+  function closeReferralModal(event) {
+    if (event.target === document.getElementById('referral-modal')) {
+      document.getElementById('referral-modal').classList.remove('open');
+    }
   }
 
   // Initial load

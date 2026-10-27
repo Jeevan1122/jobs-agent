@@ -574,8 +574,9 @@ def profile_edit():
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
-@login_required
 def index():
+    if not session.get("user_id"):
+        return render_template("landing.html")
     return render_template("index.html", user_name=session.get("user_name", ""))
 
 
@@ -822,6 +823,83 @@ def download_resume():
         data,
         mimetype="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{name}_Resume.pdf"'},
+    )
+
+
+# ── Referral finder ────────────────────────────────────────────────────────────
+
+@app.route("/api/jobs/<job_id>/referral", methods=["GET"])
+@api_login_required
+def find_referral(job_id):
+    job = db.get_job_by_id(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    company   = job.get("company", "")
+    title     = job.get("title", "")
+    candidate = _get_candidate(session["user_id"])
+    profile   = db.get_profile(session["user_id"]) or {}
+    skills    = profile.get("skills", "")
+    name      = candidate.get("name", "")
+
+    # LinkedIn people search URL — pre-filled for employees at this company
+    linkedin_search = (
+        f"https://www.linkedin.com/search/results/people/"
+        f"?keywords={company.replace(' ', '%20')}%20engineer"
+        f"&origin=GLOBAL_SEARCH_HEADER"
+    )
+
+    # Generate referral message via Groq
+    message = _generate_referral_message(name, company, title, skills)
+
+    return jsonify({
+        "company": company,
+        "title": title,
+        "linkedin_search_url": linkedin_search,
+        "message": message,
+    })
+
+
+def _generate_referral_message(name, company, title, skills):
+    """Use Groq to draft a short referral request message."""
+    from screener.visa_ats_screen import _get_client, GROQ_MODEL, GROQ_MODEL_FALLBACK
+    import re as _re
+
+    skills_preview = ", ".join(skills.split(",")[:5]) if skills else "relevant skills"
+    prompt = f"""Write a short, friendly LinkedIn referral request message (max 5 sentences).
+
+Context:
+- Sender: {name}
+- Applying to: {title} at {company}
+- Sender's key skills: {skills_preview}
+
+Requirements:
+- Start with a brief intro of who the sender is
+- Mention the specific role at {company}
+- Ask if they'd be willing to refer or share insights
+- Keep it natural, not salesy
+- Do NOT include subject line or greetings like "Dear"
+- Return ONLY the message body, nothing else
+"""
+    for model in [GROQ_MODEL, GROQ_MODEL_FALLBACK]:
+        try:
+            client = _get_client()
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=200,
+            )
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            log.warning(f"Groq referral generation failed ({model}): {e}")
+
+    # Fallback template
+    return (
+        f"Hi! I'm {name}, a {skills_preview.split(',')[0].strip()} professional applying for the "
+        f"{title} role at {company}. I came across your profile and was hoping you might be able to "
+        f"share any insights about the team or refer me if you think I'd be a good fit. "
+        f"I'd really appreciate any help — thanks so much!"
     )
 
 
